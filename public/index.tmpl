@@ -1,0 +1,15 @@
+{{ define "public/index.tmpl" }}
+<!DOCTYPE html>
+<html lang ="en-us">
+<head>
+	<title>{{ .title }}</title>
+</head>
+<body>
+	<h1>rwshurl</h1>
+	<form action="/s" method="POST">
+		<label for="url">URL:</label>
+		<input id="url" name="url" type="text" />
+		<button type="submit">Shorten</button>
+	</form>
+</html>
+{{ end }}

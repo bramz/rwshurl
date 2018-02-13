@@ -1,0 +1,11 @@
+{{ define "public/output.tmpl" }}
+<!DOCTYPE html>
+<html lang ="en-us">
+<head>
+	<title>{{ .title }}</title>
+</head>
+<body>
+<p>Your shortened URL:  <a href="{{ .url }}">http://rootwire.space:8080/s/{{ .hash }}</a></p>
+</body>
+</html>
+{{ end }}
