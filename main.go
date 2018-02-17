@@ -24,6 +24,7 @@ func main() {
 
 	domain := viper.GetString("host")
 	port := viper.GetString("port")
+    salt := viper.GetString("salt")
 	dbuser := viper.GetString("dbuser")
 	dbpass := viper.GetString("dbpass")
 	dbname := viper.GetString("dbname")
@@ -36,8 +37,6 @@ func main() {
 	}
 
 	defer db.Close()
-
-	fmt.Println("Starting application..,")
 
 	router := gin.Default()
 
@@ -54,7 +53,7 @@ func main() {
 
 		if validateUrl(url) {
 			hashdata := hashids.NewData()
-			hashdata.Salt = "pacifico is gay"
+			hashdata.Salt = salt
 			hashdata.MinLength = 5
 
 			h, _ := hashids.NewWithData(hashdata)
@@ -62,18 +61,23 @@ func main() {
 			now := time.Now()
 			hash, _ := h.Encode([]int{int(now.Unix())})
 
-			stmt := `INSERT INTO shortener (hash, url) VALUES ($1, $2)`
-			_, err = db.Exec(stmt, hash, url)
+			stmt, err := db.Prepare("INSERT INTO shortener (hash, url) VALUES ($1, $2)")
+
+            if err != nil {
+                panic(err)
+            }
+
+			_, err = stmt.Exec(hash, url)
 
 			if err != nil {
-				panic(err)
+                panic(err)
 			}
 
 			c.HTML(http.StatusOK, "public/output.tmpl", gin.H{
 				"domain": domain,
 				"title":  "rwshurl output",
 				"hash":   hash,
-				"url":    url,
+				"url":    hash,
 			})
 		} else {
 			c.HTML(http.StatusOK, "public/error.tmpl", gin.H{
