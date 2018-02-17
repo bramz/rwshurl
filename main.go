@@ -24,7 +24,7 @@ func main() {
 
 	domain := viper.GetString("host")
 	port := viper.GetString("port")
-    salt := viper.GetString("salt")
+	salt := viper.GetString("salt")
 	dbuser := viper.GetString("dbuser")
 	dbpass := viper.GetString("dbpass")
 	dbname := viper.GetString("dbname")
@@ -63,14 +63,14 @@ func main() {
 
 			stmt, err := db.Prepare("INSERT INTO shortener (hash, url) VALUES ($1, $2)")
 
-            if err != nil {
-                panic(err)
-            }
+			if err != nil {
+				panic(err)
+			}
 
 			_, err = stmt.Exec(hash, url)
 
 			if err != nil {
-                panic(err)
+				panic(err)
 			}
 
 			c.HTML(http.StatusOK, "public/output.tmpl", gin.H{
