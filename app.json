@@ -1,0 +1,8 @@
+{
+    "host": "your domain name",
+    "port": 8080,
+    "salt": "your salt here",
+    "dbuser": "",
+    "dbpass": "",
+    "dbname": ""
+}
