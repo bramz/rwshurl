@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 	"github.com/spf13/viper"
-//	"regexp"
+    "net/url"
 )
 
 
@@ -42,7 +42,7 @@ func main() {
 
 	router := gin.Default()
 
-	router.LoadHTMLFiles("public/index.tmpl", "public/output.tmpl")
+	router.LoadHTMLFiles("public/index.tmpl", "public/output.tmpl", "public/error.tmpl")
 
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "public/index.tmpl", gin.H{
@@ -53,31 +53,34 @@ func main() {
 	router.POST("/s", func(c *gin.Context) {
 		url := c.PostForm("url")
 
-//		reg := regexp.MustCompile(`^(http|https):\/\/`)
+        if(validateUrl(url)) {
+    		hashdata := hashids.NewData()
+    		hashdata.Salt = "pacifico is gay"
+    		hashdata.MinLength = 5
 
-		hashdata := hashids.NewData()
-		hashdata.Salt = "pacifico is gay"
-		hashdata.MinLength = 5
+	    	h, _ := hashids.NewWithData(hashdata)
 
-		h, _ := hashids.NewWithData(hashdata)
+		    now := time.Now()
+		    hash, _ := h.Encode([]int{int(now.Unix())})
 
-		now := time.Now()
-		hash, _ := h.Encode([]int{int(now.Unix())})
+		    stmt := `INSERT INTO shortener (hash, url) VALUES ($1, $2)`
+		    _, err = db.Exec(stmt, hash, url)
 
-		stmt := `INSERT INTO shortener (hash, url) VALUES ($1, $2)`
-		_, err = db.Exec(stmt, hash, url)
+		    if err != nil {
+			    panic(err)
+		    }
 
-		if err != nil {
-			panic(err)
-		}
-
-		c.HTML(http.StatusOK, "public/output.tmpl", gin.H{
-			"domain": domain,
-			"title": "rwshurl output",
-			"hash":  hash,
-			"url":   url,
-		})
-
+		    c.HTML(http.StatusOK, "public/output.tmpl", gin.H{
+			    "domain": domain,
+			    "title": "rwshurl output",
+			    "hash":  hash,
+			    "url":   url,
+		    })
+        } else {
+            c.HTML(http.StatusOK, "public/error.tmpl", gin.H{
+                "error": "Url must contain http or https, please try again",
+            })
+        }
 	})
 
 	router.GET("/s/:hash", func(c *gin.Context) {
@@ -96,4 +99,13 @@ func main() {
 	})
 
 	router.Run(":" + port)
+}
+
+func validateUrl(url_string string) bool {
+    _, err := url.ParseRequestURI(url_string)
+    if err != nil {
+        return false
+    } else {
+        return true
+    }
 }
